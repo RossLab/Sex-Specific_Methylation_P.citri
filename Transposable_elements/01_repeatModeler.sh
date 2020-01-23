@@ -5,6 +5,7 @@
 # Following protocol of Lewis et al. (2019) pre-print from Laura's lab
 # Downloaded and configured RepeatModeler and RepeatMasker along with
 # all dependencies according to their respective websites
+# (it's a real ball-ache!)
 
 # Make a database of the fasta file you want to annotate TEs in 
 /data/ross/mealybugs/analyses/hollie/bin/RepeatModeler-2.0/BuildDatabase \
@@ -51,5 +52,5 @@ runtime=$((((end-start)/60)/60))
 echo "runtime:"$runtime"hrs"
 
 
-# Takes a couple of days to run, the output file is interest is within a subfolder created
+# Takes a couple of days to run, the output file of interest is within a subfolder created
 # by repeatModeler and ends with <file>.classififed (this is the library needed for repeatMasker)
