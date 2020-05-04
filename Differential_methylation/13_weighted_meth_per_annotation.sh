@@ -14,8 +14,8 @@ start=`date +%s`
 #---------------------------------------------
 
 echo "copying data in"
-rsync /data/ross/mealybugs/analyses/hollie/sex-specific/methylation//02_methylation_extraction/coverage/*.txt ./
-rsync /data/ross/mealybugs/analyses/hollie/sex-specific/methylation//02_methylation_extraction/coverage/weighted_meth_per_sample.R ./
+rsync /data/ross/mealybugs/analyses/hollie/sex-specific/methylation//02_coverage_files/*.txt ./
+rsync /data/ross/mealybugs/analyses/hollie/sex-specific/methylation//02_coverage_files/weighted_meth_per_sample.R ./
 
 echo "doing the shiz"
 R --save -q -f  weighted_meth_per_sample.R

@@ -198,17 +198,43 @@ write.table(final, file="PCITRI_v0_TEs_with_total_cpgs.txt", col.names=F, row.na
 
 
 # --------------------------------------------------------------------
+
+# Intergenic regions
+
+genes <- read.delim("../PCITRI.assembly.v0.intergenic.txt", header=T)
+
+output <- sqldf("SELECT cpgs.scaffold,
+                cpgs.cpg_position,
+                genes.scaffold,
+                genes.start,
+                genes.end
+                FROM cpgs AS cpgs
+                LEFT JOIN genes AS genes 
+                ON cpgs.scaffold = genes.scaffold
+                AND (cpgs.cpg_position >= genes.start AND cpgs.cpg_position <= genes.end)")
+output <- output[!is.na(output$start),]
+
+output$cpg_counter <- 1
+
+final <- summaryBy(cpg_counter ~ scaffold+start+end, data = output, FUN=sum)
+
+colnames(final) <- NULL
+write.table(final, file="PCITRI_v0_intergenic_with_total_cpgs.txt", col.names=F, row.names=F, quote=F)
+
+
+# --------------------------------------------------------------------
 # Stuff it, put what I currently have together
 
 setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/genome_annotation/useful_files/annotation_files_with_total_cpgs")
 
-promotors_1000bp <- read_table2("PCITRI_v0_1000bp_promotors_with_total_cpgs.txt")
+#promotors_1000bp <- read_table2("PCITRI_v0_1000bp_promotors_with_total_cpgs.txt")
 promotors_2000bp <- read_table2("PCITRI_v0_2000bp_promotors_with_total_cpgs.txt")
 exons_withoutFirst3 <- read_table2("PCITRI_v0_exons_withoutFirst3_with_total_cpgs.txt")
 exons_first3 <- read_table2("PCITRI_v0_first3exons_with_total_cpgs.txt")
 genes <- read_table2("PCITRI_v0_genes_with_total_cpgs.txt")
 introns <- read_table2("PCITRI_v0_introns_with_total_cpgs.txt")
 TEs <- read_table2("PCITRI_v0_TEs_with_total_cpgs.txt", col_names = F)
+intergenic <- read_table2("PCITRI_v0_intergenic_with_total_cpgs.txt", col_names = F)
 
 # Re-name exon infor columns to match others so can bind
 colnames(exons_withoutFirst3)[1] <- "gene_id"
@@ -219,16 +245,21 @@ TEs$info <- paste0(TEs$X1, TEs$X2, TEs$X3, TEs$X4)
 TEs <- TEs[,c(5,6,7,8,9)]
 colnames(TEs) <- c("scaffold","start","end","cpg_counter.sum","gene_id")
 
+# Add colnames to intergenic
+colnames(intergenic) <- c("scaffold","start","end","cpg_counter.sum")
+intergenic$gene_id <- "nope"
+
 # Add identifying column
-promotors_1000bp$feature <- "promotors_1000bp"
+#promotors_1000bp$feature <- "promotors_1000bp"
 promotors_2000bp$feature <- "promotors_2000bp"
 exons_withoutFirst3$feature <- "exon_notFirst3"
 exons_first3$feature <- "exon_first3"
 genes$feature <- "whole_gene"
 introns$feature <- "intron"
 TEs$feature <- "TE"
+intergenic$feature <- "intergenic"
 
-all_data <- rbind(promotors_1000bp, promotors_2000bp, exons_withoutFirst3, exons_first3, genes, introns, TEs)
-colnames(all_data)[5] <- "cpg_count"
+all_data <- rbind(intergenic, promotors_2000bp, exons_withoutFirst3, exons_first3, genes, introns, TEs)
+colnames(all_data)[4] <- "cpg_count"
 
-write.table(all_data, file="merged_annotations.txt", sep="\t", quote =F, col.names = T, row.names = F)
+write.table(all_data, file="../merged_annotations.txt", sep="\t", quote =F, col.names = T, row.names = F)

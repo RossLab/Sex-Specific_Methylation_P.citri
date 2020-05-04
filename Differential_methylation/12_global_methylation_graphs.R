@@ -14,8 +14,8 @@ library(ggrepel)
 
 ## -------------------------------------------------------------------------
 
-# Read in the subsetted file from methylkit (NEED TO COVER ALL 5 EXPERIMENTS)
-objectmethbase1 <- read_delim("./F_vs_M_objectmethbase.txt", 
+# Read in the subsetted file from methylkit 
+objectmethbase1 <- read_delim("./differential_meth_methylkit/F_vs_M_objectmethbase.txt", 
                               "\t", escape_double = FALSE, trim_ws = TRUE)
 
 objectmethbase1$chrBase <- paste(objectmethbase1$chr, ".", objectmethbase1$start, sep="")
@@ -57,7 +57,7 @@ for(i in seq_along(all_files)){
 
 ## -------------------------------------------------------------------------
 # Use methylkit to get the data all togther and plottable 
-
+setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/methylation/differential_meth_methylkit")
 file.listA <- list("F1_subsetted_final.txt","F2_subsetted_final.txt","F3_subsetted_final.txt",
                    "F4_subsetted_final.txt","F5_subsetted_final.txt","M1_subsetted_final.txt",
                    "M3_subsetted_final.txt","M4_subsetted_final.txt","M5_subsetted_final.txt")
@@ -88,17 +88,16 @@ labs <- label(data1)
 labs$Sex<- c(rep("Female", 5), rep("Male", 4))
 
 ggplot(segment(data1)) +
-  geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=0.8,
+  geom_segment(aes(x=x, y=y, xend=xend, yend=yend), size=1,
                show.legend = F)+
   geom_text(data=labs,
-            aes(label=label, x=x, y=-0.008, colour=Sex,fontface="bold"),
-            show.legend = T, angle = 90, size = 6, hjust = 1)+
+            aes(label=label, x=x, y=-0.009, colour=Sex,fontface="bold"),
+            show.legend = T, angle = 90, size = 7, hjust = 1)+
   theme_bw()+
   ylab("")+
   xlab("")+
   theme(axis.text = element_blank(),
-        legend.title = element_text(size=16),
-        legend.text = element_text(size=16))+
+        legend.position = "none")+
   scale_colour_manual(values=c("pink1", "steelblue1"))
 
 ## -------------------------------------------------------------------------
@@ -112,19 +111,46 @@ PCA_data1$Sex <- c(rep("Female", 5), rep("Male", 4))
 
 
 percentage <- round(PCA_data$sdev / sum(PCA_data$sdev) * 100, 0)
-percentage <- paste( colnames(PCA_data), "(", paste( as.character(percentage), "%", ")", sep="") )
+percentage <- paste(colnames(PCA_data), "(", paste( as.character(percentage), "%", ")", sep="") )
 
 
 ggplot(PCA_data1, aes(PC1, PC2, colour=Sex))+
-  geom_point(size=7)+
-  geom_text_repel(aes(label=sample), size=9,show.legend=FALSE, point.padding = 0.5, box.padding = 0.25)+
+  geom_point(size=14)+
+  geom_text_repel(aes(label=sample), size=14,show.legend=FALSE, 
+                  point.padding = 0.85, box.padding = 0.25)+
   theme_bw()+
   xlab(paste0("PC1: ",percentage[1],"variance")) +
   ylab(paste0("PC2: ",percentage[2],"variance")) +
-  theme(axis.text=element_text(size=18),
-        axis.title=element_text(size=20),
-        legend.text=element_text(size=20),
+  theme(axis.text=element_text(size=26),
+        axis.title=element_text(size=30),
+        legend.text=element_text(size=30),
         legend.title=element_blank())+
   scale_colour_manual(values=c("pink1", "steelblue1"))
 
+## -------------------------------------------------------------------------
+# Make a plot to show the methylation level overall for males and females
+# Levels taken from the alignment output bismark files
+library(reshape2)
 
+Female <- c(8.2, 7.9,8,7.6,7.3)
+Male <- c(9.5,9.3,8.9,9.4,NA)
+
+levels <-data.frame(Female, Male)
+levels2 <- melt(levels)
+levels2 <- levels2[!is.na(levels2$value),]
+colnames(levels2) <- c("Sex","Methylation")
+
+ggplot(levels2, aes(y=Methylation, x=Sex,fill=Sex))+
+  geom_boxplot()+
+  theme_bw()+
+  xlab("Sex") +
+  ylab("CpG Methylation Level") +
+  theme(axis.text=element_text(size=26),
+        axis.title=element_text(size=30),
+        legend.text=element_text(size=30),
+        legend.position = "none")+
+  scale_fill_manual(values=c("pink1", "steelblue1"))
+head(levels2)
+
+t.test(Methylation~Sex,data=levels2)
+# t = -7.1724, df = 6.9889, p-value = 0.0001831

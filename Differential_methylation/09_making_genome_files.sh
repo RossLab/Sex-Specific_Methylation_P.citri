@@ -17,16 +17,7 @@ cut -f1,4,5,7,9 genes.txt > genes_next.txt
 sed 's/ID=//g' genes_next.txt > new.txt
 echo -e "scaffold\tstart\tend\tstrand\tgene_id" | cat - new.txt > genes_with_start_and_end.txt
 
-#---------------------------------------------------
-# From coverage files need files to look like:
-# chr, position, total coverage, count cystosines
-gunzip *cov.gz
 
-for file in $(ls *cov)
-do
-    base=$(basename ${file} "_1_bismark_bt2_pe.deduplicated.bismark.cov")
-    cut -f1,2,5,6 ${file} > ${base}_coverage.txt
-done
 
 
 

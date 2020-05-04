@@ -31,12 +31,13 @@ hist(test2$weightedMeth.mean[test2$feature == "exon_first3"],breaks=30) # Lookin
 # This is 8.28% in females and 9.7 in males.
 # We still get a little bar below 0.1 when we use this
 par(mfrow=c(1,2))
-test3 <- annotation_females[annotation_females$weightedMeth.mean > 0.1,] 
+test3 <- annotation_females[annotation_females$weightedMeth.mean >0.1,] 
 hist(test3$weightedMeth.mean[test3$feature == "exon_first3"],breaks=30, main="female exons 1-3",
      xlab = "Mehtylation Level")
 test4 <- annotation_males[annotation_males$weightedMeth.mean > 0.1,] 
 hist(test4$weightedMeth.mean[test4$feature == "exon_first3"],breaks=30, main="male exons 1-3",
      xlab = "Mehtylation Level")
+
 
 # I'm thinking this works!!! We get a peack at the low end but then a drop off before we get the big peak again
 # at 0, which makes me think most sites have this level or greater if they're methylated, anything lower
@@ -107,19 +108,21 @@ ggplot(melted_meth_stuff, aes(x=Feature, y=Weighted_Meth, fill=Sex))+
                    limits =c("promotors_2000bp","exon_first3","exon_notFirst3","intron","TE") )
 
 
-# Throw in some stats
-res.1 <- aov(Weighted_Meth ~ Feature * Sex, data = melted_meth_stuff)
-summary(res.1) # Interaction is significant
+# Stats
+melted_meth_stuff$Feature  <- as.factor(melted_meth_stuff$Feature)
+model1<-lm(Weighted_Meth ~ Sex * Feature , data=melted_meth_stuff)
+model2<-lm(Weighted_Meth ~ Sex + Feature , data=melted_meth_stuff)
+anova(model1,model2) # Sig interaction
+summary.lm(model1) # Everything is sig
 
-TukeyHSD(res.1)
-# Overall males < female, p < 0.000 
-
-# Exons 1-3: male < female, p < 0.000
-# Promtors: male < female, p < 0.000
-# Exons 3+: male < female, p < 0.000
-# Introns: not significant, p = 0.995
-# TEs: male < female, p < 0.000
-
+melted_meth_stuff$SHD<-interaction(melted_meth_stuff$Sex,melted_meth_stuff$Feature)
+model1_new<-lm(Weighted_Meth~-1+SHD, data=melted_meth_stuff)
+summary(glht(model1_new,linfct=mcp(SHD="Tukey"))) 
+# Everything is sig except for: 
+# female prom not sig from female exons 1-3
+# male proms not sig from male exons 1-3
+# female exons 4+ not sig from male exons 4+
+# female introns not sig from male introns
 
 
 # Boxplot for meth of all features, methylated in one sex or not 
