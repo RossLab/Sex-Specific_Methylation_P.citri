@@ -5,7 +5,7 @@
 
 set -e
 
-SCRATCH=/scratch/$USER/$JOB_ID
+SCRATCH=/scratch/$USER
 mkdir -p $SCRATCH
 cd $SCRATCH
 
