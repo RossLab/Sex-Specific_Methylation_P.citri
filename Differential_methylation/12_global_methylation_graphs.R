@@ -3,7 +3,7 @@
 ## -------------------------------------------------------------------------
 
 # Load packages etc.
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/methylation")
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation")
 library(grid)
 library(readr)
 library(ggplot2)
@@ -57,7 +57,7 @@ for(i in seq_along(all_files)){
 
 ## -------------------------------------------------------------------------
 # Use methylkit to get the data all togther and plottable 
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/methylation/differential_meth_methylkit")
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation/differential_meth_methylkit")
 file.listA <- list("F1_subsetted_final.txt","F2_subsetted_final.txt","F3_subsetted_final.txt",
                    "F4_subsetted_final.txt","F5_subsetted_final.txt","M1_subsetted_final.txt",
                    "M3_subsetted_final.txt","M4_subsetted_final.txt","M5_subsetted_final.txt")
@@ -114,19 +114,67 @@ percentage <- round(PCA_data$sdev / sum(PCA_data$sdev) * 100, 0)
 percentage <- paste(colnames(PCA_data), "(", paste( as.character(percentage), "%", ")", sep="") )
 
 
-ggplot(PCA_data1, aes(PC1, PC2, colour=Sex))+
+ggplot(PCA_data1, aes(PC3, PC4, colour=Sex))+
   geom_point(size=14)+
   geom_text_repel(aes(label=sample), size=14,show.legend=FALSE, 
                   point.padding = 0.85, box.padding = 0.25)+
   theme_bw()+
-  xlab(paste0("PC1: ",percentage[1],"variance")) +
-  ylab(paste0("PC2: ",percentage[2],"variance")) +
+  xlab(paste0("PC1: ",percentage[3],"variance")) +
+  ylab(paste0("PC2: ",percentage[4],"variance")) +
   theme(axis.text=element_text(size=26),
         axis.title=element_text(size=30),
         legend.text=element_text(size=30),
         legend.title=element_blank())+
   scale_colour_manual(values=c("pink1", "steelblue1"))
 
+# Include a coefficent of variation to measure the dispersion across individual CpGs in males and females
+# Function from: https://rcompanion.org/rcompanion/c_02.html
+summary.list = function(x)list(
+  N.with.NA.removed= length(x[!is.na(x)]),
+  Count.of.NA= length(x[is.na(x)]),
+  Mean=mean(x, na.rm=TRUE),
+  Median=median(x, na.rm=TRUE),
+  Max.Min=range(x, na.rm=TRUE),
+ # Range=max(Data$ Fish, na.rm=TRUE) - min(Data$ Fish, na.rm=TRUE),
+  Variance=var(x, na.rm=TRUE),
+  Std.Dev=sd(x, na.rm=TRUE),
+  Coeff.Variation.Prcnt=sd(x, na.rm=TRUE)/mean(x, na.rm=TRUE)*100,
+  Std.Error=sd(x, na.rm=TRUE)/sqrt(length(x[!is.na(x)])),
+  Quantile=quantile(x, na.rm=TRUE)
+)
+
+meth_levels_by_sex <- read_delim("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation/regional_genome_browser/meth_levels_by_sex.txt", 
+                                 "\t", escape_double = FALSE, trim_ws = TRUE)
+head(meth_levels_by_sex)
+summary.list(meth_levels_by_sex$Male) #138.21
+summary.list(meth_levels_by_sex$Female)#217.4
+# Female more vairable but I guess this makes sense due to the bimodal nature of female data
+
+# Should probably do it by sample
+F_vs_M_objectmethbase <- read_delim("F_vs_M_objectmethbase.txt", 
+                                    "\t", escape_double = FALSE, trim_ws = TRUE)
+head(F_vs_M_objectmethbase)
+F_vs_M_objectmethbase$female_1 <- 1 - ((F_vs_M_objectmethbase$coverage1 - F_vs_M_objectmethbase$numCs1) / F_vs_M_objectmethbase$coverage1)
+F_vs_M_objectmethbase$female_2 <- 1 - ((F_vs_M_objectmethbase$coverage2 - F_vs_M_objectmethbase$numCs2) / F_vs_M_objectmethbase$coverage2)
+F_vs_M_objectmethbase$female_3 <- 1 - ((F_vs_M_objectmethbase$coverage3 - F_vs_M_objectmethbase$numCs3) / F_vs_M_objectmethbase$coverage3)
+F_vs_M_objectmethbase$female_4 <- 1 - ((F_vs_M_objectmethbase$coverage4 - F_vs_M_objectmethbase$numCs4) / F_vs_M_objectmethbase$coverage4)
+F_vs_M_objectmethbase$female_5 <- 1 - ((F_vs_M_objectmethbase$coverage5 - F_vs_M_objectmethbase$numCs5) / F_vs_M_objectmethbase$coverage5)
+
+F_vs_M_objectmethbase$male_1 <- 1 - ((F_vs_M_objectmethbase$coverage6 - F_vs_M_objectmethbase$numCs6) / F_vs_M_objectmethbase$coverage6)
+F_vs_M_objectmethbase$male_3 <- 1 - ((F_vs_M_objectmethbase$coverage7 - F_vs_M_objectmethbase$numCs7) / F_vs_M_objectmethbase$coverage7)
+F_vs_M_objectmethbase$male_4 <- 1 - ((F_vs_M_objectmethbase$coverage8 - F_vs_M_objectmethbase$numCs8) / F_vs_M_objectmethbase$coverage8)
+F_vs_M_objectmethbase$male_5 <- 1 - ((F_vs_M_objectmethbase$coverage9 - F_vs_M_objectmethbase$numCs9) / F_vs_M_objectmethbase$coverage9)
+
+summary.list(F_vs_M_objectmethbase$female_1) #218.16
+summary.list(F_vs_M_objectmethbase$female_2) #220.66
+summary.list(F_vs_M_objectmethbase$female_3) #214.63
+summary.list(F_vs_M_objectmethbase$female_4) #224.69
+summary.list(F_vs_M_objectmethbase$female_5) #240.93
+
+summary.list(F_vs_M_objectmethbase$male_1) #150.38
+summary.list(F_vs_M_objectmethbase$male_3) #143.98
+summary.list(F_vs_M_objectmethbase$male_4) #154.03
+summary.list(F_vs_M_objectmethbase$male_5) #157.07
 ## -------------------------------------------------------------------------
 # Make a plot to show the methylation level overall for males and females
 # Levels taken from the alignment output bismark files

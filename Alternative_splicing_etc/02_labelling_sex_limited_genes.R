@@ -2,7 +2,7 @@
 # Sorting out lists of genes which are sex-limited etc.
 #---------------------------------------------------------
 
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/transcription")
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/transcription")
 
 library(readr)
 library(reshape2)
@@ -79,7 +79,39 @@ ggplot(FPKMS_in_data_plot, aes(x=main_category, fill=plotbias))+
         axis.title=element_text(size=22),
         legend.text = element_text(size=22))
 
+#---------------------------------------------------------
+# Make something like Andrew's graph
+FPKM_values_by_sex <- read_delim("FPKM_values_by_sex.txt", 
+                                 "\t", escape_double = FALSE, trim_ws = TRUE)
+FPKMs <- dcast(FPKM_values_by_sex, gene_id ~ origin)
+head(FPKMs)
 
+FPKMs <- FPKMs[FPKMs$male>1 | FPKMs$female>1 ,] #19273
+FPKMs$total <- FPKMs$female + FPKMs$male
+FPKMs$prop_female <- 1- (FPKMs$total - FPKMs$female)/FPKMs$total
+
+ggplot(FPKMs, aes ( x= prop_female))+
+  geom_histogram(colour="black", bins=50)+
+  xlab("Proportion of Female Expression")+
+  ylab("Number of Genes")+
+  theme_bw()+
+  theme(axis.text=element_text(size=20),
+        axis.title=element_text(size=22),
+        legend.text = element_text(size=22))
+
+# Try Andrew's method
+FPKMs$female_sq <- FPKMs$female*FPKMs$female
+FPKMs$male_sq <- FPKMs$male*FPKMs$male
+FPKMs$SPM <- FPKMs$female_sq/(FPKMs$female_sq +FPKMs$male_sq )
+
+ggplot(FPKMs, aes ( x= SPM))+
+  geom_histogram(colour="black", bins=50)+
+  xlab("SPM in Females")+
+  ylab("Number of Genes")+
+  theme_bw()+
+  theme(axis.text=element_text(size=20),
+        axis.title=element_text(size=22),
+        legend.text = element_text(size=22))
 
 #---------------------------------------------------------
 # Hmmm

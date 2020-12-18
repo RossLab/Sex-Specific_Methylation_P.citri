@@ -1,6 +1,6 @@
 # Make graphs etc for genes with ONLY male or female expression
 
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/meth_paired_with_exp")
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/meth_paired_with_exp")
 
 library(readr)
 library(reshape2)
@@ -15,10 +15,10 @@ library(multcomp)
 # Read in data
 # -----------------------------------------------
 
-weightedMeth_exons_promotors_only <- read_delim("~/Dropbox/Edinburgh/Sex-specific-mealybugs/methylation/weightedMeth_exons_promotors_only.txt", 
+weightedMeth_exons_promotors_only <- read_delim("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation/weightedMeth_exons_promotors_only.txt", 
                                                 "\t", escape_double = FALSE, trim_ws = TRUE)
 
-FPKMs_logFC_bias_catergory <- read_delim("~/Dropbox/Edinburgh/Sex-specific-mealybugs/transcription/FPKMs_logFC_bias_catergory.txt", 
+FPKMs_logFC_bias_catergory <- read_delim("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/transcription/FPKMs_logFC_bias_catergory.txt", 
                                          "\t", escape_double = FALSE, trim_ws = TRUE)
 FPKM_values_by_sex <- melt(FPKMs_logFC_bias_catergory, id.vars=c("gene_id","log2FC","bias"))
 colnames(FPKM_values_by_sex)[4]<-"origin"

@@ -1,6 +1,6 @@
 # Make graphs etc for genes with ONLY male or female expression
 
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/meth_paired_with_exp")
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/meth_paired_with_exp")
 
 library(readr)
 library(reshape2)
@@ -15,10 +15,10 @@ library(multcomp)
 # Read in data
 # -----------------------------------------------
 
-weightedMeth_exons_promotors_only <- read_delim("~/Dropbox/Edinburgh/Sex-specific-mealybugs/methylation/weightedMeth_exons_promotors_only.txt", 
+weightedMeth_exons_promotors_only <- read_delim("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation/weightedMeth_exons_promotors_only.txt", 
                                                 "\t", escape_double = FALSE, trim_ws = TRUE)
 
-FPKMs_logFC_bias_catergory <- read_delim("~/Dropbox/Edinburgh/Sex-specific-mealybugs/transcription/FPKMs_logFC_bias_catergory.txt", 
+FPKMs_logFC_bias_catergory <- read_delim("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/transcription/FPKMs_logFC_bias_catergory.txt", 
                                          "\t", escape_double = FALSE, trim_ws = TRUE)
 FPKM_values_by_sex <- melt(FPKMs_logFC_bias_catergory, id.vars=c("gene_id","log2FC","bias"))
 colnames(FPKM_values_by_sex)[4]<-"origin"
@@ -30,6 +30,39 @@ meth_exp[is.na(meth_exp)] <- 0
 
 head(meth_exp)
 colnames(meth_exp)[7]<-"weightedMeth"
+# -----------------------------------------------
+not_exp_only <- meth_exp[meth_exp$bias=="0",]
+not_exp_only_proms <- not_exp_only[not_exp_only$feature=="promotors_2000bp",]
+not_exp_only_exons <- not_exp_only[not_exp_only$feature=="exon_first3",]
+
+ggplot(not_exp_only_exons, aes(x=weightedMeth, fill = origin))+
+  geom_histogram()+
+  ggtitle("Exons 1-3")+
+  xlab("Weighted Methylation Level")+
+  ylab("Number of Genes")+
+  scale_fill_manual("", breaks=c("female", "male"),
+                    values = c("pink1","steelblue1"),
+                    labels= c("Female", "Male"))+
+  theme_bw()+
+  theme(axis.text=element_text(size=18),
+        axis.title=element_text(size=20),
+        legend.text=element_text(size=20),
+        plot.title = element_text(size=20))
+
+ggplot(not_exp_only_proms, aes(x=weightedMeth, fill = origin))+
+  geom_histogram()+
+  ggtitle("Promoters")+
+  xlab("Weighted Methylation Level")+
+  ylab("Number of Genes")+
+  scale_fill_manual("", breaks=c("female", "male"),
+                    values = c("pink1","steelblue1"),
+                    labels= c("Female", "Male"))+
+  theme_bw()+
+  theme(axis.text=element_text(size=18),
+        axis.title=element_text(size=20),
+        legend.text=element_text(size=20),
+        plot.title = element_text(size=20))
+
 # -----------------------------------------------
 # Summary function
 # -----------------------------------------------
