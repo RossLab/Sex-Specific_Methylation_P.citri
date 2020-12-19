@@ -1,5 +1,5 @@
 ## -------------------------------------------------------------------------
-# Genome browser for methylation - lollipops
+# Genome browser for methylation 
 ## -------------------------------------------------------------------------
 
 setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/methylation/differential_meth_methylkit")

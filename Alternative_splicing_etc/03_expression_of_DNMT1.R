@@ -34,6 +34,9 @@ ggplot(dnmt1, aes(x=Sex, y=value, fill=Sex))+
         axis.title=element_text(size=22),
         legend.position = "none")
 
-
-
-
+#---------------------------------------------------------
+# Actually thats a small difference, was it statistically differnt?
+FPKMs_logFC_bias_catergory <- read_delim("FPKMs_logFC_bias_catergory.txt", 
+                                         "\t", escape_double = FALSE, trim_ws = TRUE)
+look <- FPKMs_logFC_bias_catergory[FPKMs_logFC_bias_catergory$gene_id=="g14868",]
+# Yes female biased at 1.5x
