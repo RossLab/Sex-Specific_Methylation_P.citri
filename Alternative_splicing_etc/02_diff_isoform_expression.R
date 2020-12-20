@@ -2,13 +2,14 @@
 # Alternative Splicing Analysis: Sex-Specific Mealybug
 #---------------------------------------------------------
 
-# NOTE: used Stevie's RSEM isoform results
+# NOTE: used new isoform counts from RSEM and new PASA annotation
 
-setwd("~/Dropbox/Edinburgh/Sex-specific-mealybugs/transcription/stevie_RSEM_counts")
-
+setwd("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/transcription/new_alt_splice_analysis/input_files")
 library(IsoformSwitchAnalyzeR)
 library(readr)
 library(doBy)
+library(dplyr)
+library(tidyr)
 
 file.list <- list.files("./", pattern = "*isoforms.results")
 
@@ -18,11 +19,19 @@ myDesign <- data.frame(
   sampleID = colnames(quant_data$abundance)[-1],
   condition = c("female","female","female","male","male","male"))
 
+# Deal with the gff file
+# grep "exon" pcitri_v0_updated_with_pasa_no_hashes.gff3 > exons
+# sed 's/ID/gene_id/g' exons > exons1
+# sed 's/=/ \"/g' exons1 > exons2
+# sed 's/Parent/ transcript_id /g' exons2 > exons3
+# sed 's/\.t.*;/\";/1' exons3 > exons4
+# sed 's/$/\"/' exons4 > pcitri_v0_updated_with_pasa_dexseq.gtf 
+
 aSwitchList <- importRdata(
   isoformCountMatrix   = quant_data$counts,
   isoformRepExpression = quant_data$abundance,
   designMatrix         = myDesign,
-  isoformExonAnnoation = "/Users/holliemarshall/Dropbox/Edinburgh/Sex-specific-mealybugs/genome_annotation/useful_files/annotation_files/PCITRI.assembly.v0.braker.planococcus_citri.gt_edit.gff3",
+  isoformExonAnnoation = "pcitri_v0_updated_with_pasa_dexseq.gtf",
   showProgress = TRUE)
 
 SwitchListFiltered <- preFilter(
@@ -31,9 +40,16 @@ SwitchListFiltered <- preFilter(
   isoformExpressionCutoff = 3,
   removeSingleIsoformGenes = TRUE,
   dIFcutoff = 0.25) 
+# Round 1 with initial annotation pcitri_v0
 # 1235 isoforms left (as vast majortity of genes not annotaed with alternate transcripts for P.citri)
 # 28586 transcripts (93.13%) are single isoform genes anyway
 # 847 transcripts filtered on expression levels 
+
+# Round 2 with new annotation pcitri_v0 updated with pasa
+# The filtering removed 31514 ( 94.29% of ) transcripts which are single isoform
+# 1210 isoforms left LOL
+# 1920 left after just removing single isoforms
+# 1210 left on expression filtering
 
 # Analyse remaining isoforms with DEXSeq for differntial usage
 SwitchListAnalyzed <- isoformSwitchTestDEXSeq(
@@ -41,10 +57,13 @@ SwitchListAnalyzed <- isoformSwitchTestDEXSeq(
   reduceToSwitchingGenes=TRUE)
 
 extractSwitchSummary(SwitchListAnalyzed)
-#Comparison nrIsoforms nrGenes
+#Comparison nrIsoforms nrGenes : round 1
 #1 female vs male        423      209
 # 423 isoforms from 209 genes differentially used
 # out of 1235 isforms testes
+
+#       Comparison nrIsoforms nrSwitches nrGenes: round 2
+# 1 female vs male        408        227     203
 
 switchingIso <- extractTopSwitches( 
   SwitchListAnalyzed, 
@@ -53,11 +72,15 @@ switchingIso <- extractTopSwitches(
   extractGenes = T,    # when FALSE isoforms are returned
   sortByQvals = TRUE)
 
-write.table(file="list_diff_iso_genes.txt",switchingIso$gene_id,
+write.table(file="list_diff_iso_genes_round2.txt",switchingIso$gene_id,
             sep = "\t", quote = F, col.names = T, row.names = F)
 
-#write.table(file="diff_iso_genes_all_info.txt",switchingIso[,-c(1,3)],
- #           sep = "\t", quote = F, col.names = T, row.names = F)
+# Compare to round 1:
+list_diff_iso_genes_round2 <- read_csv("list_diff_iso_genes_round2.txt")
+list_diff_iso_genes <- read_csv("~/Dropbox/Edinburgh/Projects/Sex-specific-mealybugs/transcription/stevie_RSEM_counts/list_diff_iso_genes.txt")
+
+look <- merge (list_diff_iso_genes_round2, list_diff_iso_genes, by="x")
+# 192 in common out of # 209 round 1 and 203 round 2
 
 # Find out the top two isoforms by significant qvalue
 top_switches <- extractTopSwitches(
@@ -67,12 +90,12 @@ top_switches <- extractTopSwitches(
   sortByQvals = TRUE)
 
 # Make a plot of one of the isoforms
-switchPlot(SwitchListAnalyzed, gene = 'g10106')
+switchPlot(SwitchListAnalyzed, gene = 'g3376')
 
 # Make a plot of the top 10 isoforms (automatically outputs as pdf)
 switchPlotTopSwitches(
   switchAnalyzeRlist = SwitchListAnalyzed, 
-  n = 209,
+  n = 203,
   filterForConsequences = FALSE, 
   splitFunctionalConsequences = F)
 
